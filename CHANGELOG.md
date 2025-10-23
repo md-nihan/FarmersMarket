@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ensure `public/uploads` directory exists to save incoming media reliably
 - Normalize saved product farmer_phone to E.164 for consistency and queries
 - Added GET /api/whatsapp/last to debug last inbound webhook during testing
-- Render deploy crash: added safe fallback in server.js to Twilio routes if `routes/whatsapp-green.js` is missing (Linux is case-sensitive)
+- Render deploy crash: initially added fallback to Twilio routes; REMOVED fallback and now force Green API routes to prevent accidental Twilio replies
 
 ## [2025-10-23] - Green API Migration Complete
 

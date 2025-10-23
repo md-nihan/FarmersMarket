@@ -8,15 +8,8 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
-// Import routes
-let whatsappRoutes;
-try {
-  whatsappRoutes = require('./routes/whatsapp-green'); // Green API
-  console.log('💚 Using Green API WhatsApp routes');
-} catch (e) {
-  console.warn('⚠️ Green API routes not found, falling back to Twilio routes:', e.message);
-  whatsappRoutes = require('./routes/whatsapp');
-}
+// Import routes (force Green API; no Twilio fallback)
+const whatsappRoutes = require('./routes/whatsapp-green');
 const productRoutes = require('./routes/products');
 const farmerRoutes = require('./routes/farmers');
 const authRoutes = require('./routes/auth');
