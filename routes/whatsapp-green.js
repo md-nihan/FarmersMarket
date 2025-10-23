@@ -285,12 +285,13 @@ router.post('/', async (req, res) => {
     // Get image URL if provided and download it
     let imageUrl = '';
     if (numMedia > 0 && messageData.fileMessageData) {
-      // Get Green API media URL
-      const greenMediaUrl = messageData.fileMessageData.downloadUrl;
+      // Get Green API media URL (handle variants)
+      const f = messageData.fileMessageData || {};
+      const greenMediaUrl = f.downloadUrl || f.urlFile || f.fileUrl || f.url || '';
       console.log(`🖼️ Original Green API URL: ${greenMediaUrl}`);
       
       // Download and save image locally
-      const localImagePath = await downloadAndSaveImage(greenMediaUrl);
+      const localImagePath = greenMediaUrl ? await downloadAndSaveImage(greenMediaUrl) : null;
       
       if (localImagePath) {
         // Construct full URL for the image

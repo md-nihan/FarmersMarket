@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Farmer = require('../models/Farmer');
 const { ensureWhatsAppAddress, normalizePhone } = require('../utils/phone');
+const { verifyToken } = require('./auth');
 
 // We'll import the sendWhatsAppMessage function from Green API whatsapp routes
 const whatsappRoutes = require('./whatsapp-green');
@@ -170,6 +171,29 @@ router.get('/farmer/:phone', async (req, res) => {
       message: 'Error fetching products',
       error: error.message
     });
+  }
+});
+
+// Admin: delete ALL products (use JWT from /api/auth/login)
+router.delete('/all', verifyToken, async (req, res) => {
+  try {
+    const result = await Product.deleteMany({});
+    res.json({ success: true, deleted: result.deletedCount });
+  } catch (error) {
+    console.error('Error deleting all products:', error);
+    res.status(500).json({ success: false, message: 'Error deleting products', error: error.message });
+  }
+});
+
+// Admin: delete products by farmer phone (E.164)
+router.delete('/by-farmer/:phone', verifyToken, async (req, res) => {
+  try {
+    const phone = normalizePhone(req.params.phone);
+    const result = await Product.deleteMany({ farmer_phone: phone });
+    res.json({ success: true, phone, deleted: result.deletedCount });
+  } catch (error) {
+    console.error('Error deleting farmer products:', error);
+    res.status(500).json({ success: false, message: 'Error deleting farmer products', error: error.message });
   }
 });
 

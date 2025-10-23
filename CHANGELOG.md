@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Normalize saved product farmer_phone to E.164 for consistency and queries
 - Added GET /api/whatsapp/last to debug last inbound webhook during testing
 - Render deploy crash: initially added fallback to Twilio routes; REMOVED fallback and now force Green API routes to prevent accidental Twilio replies
+- Admin endpoints: DELETE /api/products/all, DELETE /api/products/by-farmer/:phone (JWT required) to clean up duplicate data
 
 ## [2025-10-23] - Green API Migration Complete
 
@@ -70,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated farmer approval workflow to use Green API for welcome messages
 - Modified product listing confirmation to use Green API
 - Updated order notification system to use Green API
-- Refactored WhatsApp webhook to handle Green API payload structure
+- Refactored WhatsApp webhook to handle Green API payload structure (supports caption text, and media URL fields downloadUrl|urlFile|fileUrl|url)
 - Updated all route files to import Green API messaging functions
 
 ### Fixed
