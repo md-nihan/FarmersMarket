@@ -8,15 +8,31 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
+// Import routes with more robust path resolution
+const path = require('path');
+
+// Function to resolve route paths more reliably
+function resolveRoute(routePath) {
+  try {
+    // Try the standard require first
+    return require(routePath);
+  } catch (error) {
+    // If that fails, try with path.resolve
+    const resolvedPath = path.resolve(__dirname, routePath);
+    console.log(`Attempting to load route from resolved path: ${resolvedPath}`);
+    return require(resolvedPath);
+  }
+}
+
 // Import routes
-const productRoutes = require('./routes/products');
-const farmerRoutes = require('./routes/farmers');
-const authRoutes = require('./routes/auth');
-const farmerAuthRoutes = require('./routes/farmerAuth');
-const farmerProductRoutes = require('./routes/farmerProducts');
-const customerOrderRoutes = require('./routes/customerOrders');
-const adminOrderRoutes = require('./routes/adminOrders');
-const freshnessRoutes = require('./routes/freshness');
+const productRoutes = resolveRoute('./routes/products');
+const farmerRoutes = resolveRoute('./routes/farmers');
+const authRoutes = resolveRoute('./routes/auth');
+const farmerAuthRoutes = resolveRoute('./routes/farmerAuth');
+const farmerProductRoutes = resolveRoute('./routes/farmerProducts');
+const customerOrderRoutes = resolveRoute('./routes/customerOrders');
+const adminOrderRoutes = resolveRoute('./routes/adminOrders');
+const freshnessRoutes = resolveRoute('./routes/freshness');
 
 // Function to initialize services after server start
 function initializeServices() {
