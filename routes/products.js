@@ -27,16 +27,10 @@ const fixImageUrl = (imageUrl, req) => {
   if (!imageUrl || imageUrl.startsWith('http')) {
     return imageUrl;
   }
-  
-  // Get backend base URL
-  let backendBase = getBackendBase(req);
-  
-  // Ensure we always use the correct production URL for deployed images
-  if (process.env.NODE_ENV === 'production' && !process.env.BACKEND_PUBLIC_URL) {
-    // Fallback to the known deployed URL if environment variable is not set
-    backendBase = 'https://farmlinkai-7.onrender.com';
-  }
-  
+
+  // Get backend base URL (derived from request/headers or env)
+  const backendBase = getBackendBase(req);
+
   // Construct the full image URL - ensure no double slashes
   return `${backendBase}${imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl}`;
 };
