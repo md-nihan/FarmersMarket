@@ -5,6 +5,8 @@ const API_BASE_URL = window.location.origin;
 let allFarmers = [];
 let allProducts = [];
 let pendingFarmers = [];
+let allOrders = [];
+let notificationInterval = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,16 +21,44 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFarmers();
     loadPendingFarmers();
     loadAllProducts();
+    loadAllOrders();
     loadStats();
     setupEditFarmerForm();
+    
+    // Start polling for notifications every 15 seconds
+    startNotificationPolling();
 });
 
 // Add logout function
 function logout() {
+    // Stop polling
+    if (notificationInterval) {
+        clearInterval(notificationInterval);
+    }
+    
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminData');
         window.location.href = 'login.html';
+    }
+}
+
+// Start notification polling
+function startNotificationPolling() {
+    // Poll for new orders every 15 seconds
+    notificationInterval = setInterval(() => {
+        checkForNewOrders();
+    }, 15000);
+}
+
+// Check for new orders
+async function checkForNewOrders() {
+    try {
+        // In a real implementation, we would check for new orders
+        // and show notifications if any are found
+        console.log('Checking for new orders...');
+    } catch (error) {
+        console.error('Error checking for new orders:', error);
     }
 }
 
@@ -492,6 +522,18 @@ function renderAllProducts(products) {
             </table>
         </div>
     `;
+}
+
+// Load all orders
+async function loadAllOrders() {
+    try {
+        // For now, we'll create a mock implementation
+        // In a real implementation, we would fetch orders from the API
+        console.log('Loading all orders...');
+        // This would be implemented when we have the orders API
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
 }
 
 // Show toast notification

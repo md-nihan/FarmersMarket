@@ -8,12 +8,8 @@ console.log('Testing phone number formatting:');
 console.log('Original:', farmerPhone);
 console.log('Normalized:', normalizePhone(farmerPhone));
 
-// Test what the Green API function would create as chatId
+// Test what the phone utility would create
 const normalized = normalizePhone(farmerPhone);
-const greenApiNumber = normalized.startsWith('+') ? normalized.substring(1) : normalized;
-const chatId = `${greenApiNumber}@c.us`;
-console.log('ChatId:', chatId);
+console.log('Normalized format:', normalized);
 
-// This should match what we saw in the Green API settings: 919845325913@c.us
-console.log('Expected format from Green API settings: 919845325913@c.us');
-console.log('Match:', chatId === '919845325913@c.us' ? '✅ YES' : '❌ NO');
+console.log('Match with expected format:', normalized === '+919845325913' ? '✅ YES' : '❌ NO');

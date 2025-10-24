@@ -4,9 +4,6 @@
 
 - [ ] MongoDB Atlas cluster created and running
 - [ ] MongoDB connection string added to `.env`
-- [ ] Twilio account created
-- [ ] Twilio WhatsApp sandbox activated
-- [ ] Twilio credentials added to `.env`
 - [ ] Node.js dependencies installed (`npm install`)
 - [ ] Python dependencies installed (`pip install -r requirements.txt`)
 
@@ -23,16 +20,16 @@
 ### Backend Service
 - [ ] Backend server starts without errors
 - [ ] Console shows: "✅ MongoDB Connected Successfully"
-- [ ] Service running on http://localhost:3000
-- [ ] Health check works: http://localhost:3000/api/health
-- [ ] Static files served: http://localhost:3000
+- [ ] Service running on http://localhost:3001
+- [ ] Health check works: http://localhost:3001/api/health
+- [ ] Static files served: http://localhost:3001
 
 ---
 
 ## 🧑‍💼 Admin Panel Tests
 
 ### Farmer Management
-- [ ] Admin panel loads: http://localhost:3000/admin.html
+- [ ] Admin panel loads: http://localhost:3001/admin.html
 - [ ] UI displays correctly (glass morphism, gradients, animations)
 - [ ] All 4 stat cards visible (Total Farmers, Active Farmers, Total Products, Orders)
 
@@ -61,43 +58,49 @@
 
 ---
 
-## 📱 WhatsApp Integration Tests
+## 🧑‍🌾 Farmer Dashboard Tests
 
 ### Farmer Registration
 - [ ] Farmer added to system via admin panel
 - [ ] Phone number includes country code (e.g., +91...)
 - [ ] Farmer marked as Active
 
-### Product Listing - Text Only
-- [ ] Send WhatsApp message: "Tomato 30 kg"
-- [ ] Bot responds within 10 seconds
-- [ ] Confirmation message received
-- [ ] Message includes product name, quantity
+### Farmer Login
+- [ ] Navigate to http://localhost:3001/farmer-login.html
+- [ ] Enter valid farmer credentials
+- [ ] Redirected to farmer dashboard
+- [ ] Welcome message shows farmer name
+
+### Product Upload - Text Only
+- [ ] Fill product form with name and quantity
+- [ ] Click "Upload Product"
+- [ ] Success message received
+- [ ] Product appears in "My Products" section
 - [ ] Default quality grade assigned (Grade B)
 
-### Product Listing - With Image
-- [ ] Send WhatsApp message: "Onion 50 kg"
-- [ ] Attach an image of onions
-- [ ] Bot responds within 30 seconds (AI processing time)
-- [ ] Confirmation message includes AI quality grade
-- [ ] Grade is A, B, or C
+### Product Upload - With Image
+- [ ] Fill product form with name, quantity, and image
+- [ ] Click "Upload Product"
+- [ ] Success message received
+- [ ] Product appears in "My Products" section
+- [ ] AI quality grade assigned (A, B, or C)
 
-### Invalid Message Handling
-- [ ] Send incomplete message: "Tomato"
-- [ ] Bot responds with error and format instructions
+### Invalid Form Handling
+- [ ] Try to submit empty form
+- [ ] Validation errors shown
 - [ ] No product created in database
 
 ### Unregistered Farmer
-- [ ] Send message from unregistered WhatsApp number
-- [ ] Bot responds: "You are not registered as a farmer"
-- [ ] No product created
+- [ ] Try to login with unregistered credentials
+- [ ] Error message shown
+- [ ] No access to dashboard
 
 ---
 
 ## 🛒 Marketplace Tests
 
 ### Page Load
-- [ ] Marketplace loads: http://localhost:3000
+- [ ] Marketplace loads: http://localhost:3001
 - [ ] Animated background displays (gradient orbs)
 - [ ] Hero section shows title and stats
 - [ ] Products section visible
@@ -147,7 +150,6 @@
   - [ ] Quality grade
   - [ ] Farmer details
 - [ ] Form has fields for buyer name and phone
-- [ ] Info message about WhatsApp notification visible
 
 ### Successful Order
 - [ ] Fill in buyer name: "Ravi Kumar"
@@ -160,8 +162,8 @@
 - [ ] Product removed from marketplace (no longer available)
 
 ### Farmer Notification
-- [ ] Farmer receives WhatsApp message within 10 seconds
-- [ ] Message includes:
+- [ ] Farmer receives notification in dashboard
+- [ ] Notification shows:
   - [ ] 🎉 Order Alert emoji
   - [ ] Product name
   - [ ] Quantity
@@ -275,7 +277,7 @@
 ### Service Failures
 - [ ] MongoDB disconnected - server shows error
 - [ ] AI service down - fallback grade used
-- [ ] Twilio error - order still recorded
+- [ ] Order still recorded
 
 ---
 
@@ -284,6 +286,7 @@
 ### Load Time
 - [ ] Marketplace loads in < 2 seconds
 - [ ] Admin panel loads in < 2 seconds
+- [ ] Farmer dashboard loads in < 2 seconds
 - [ ] API responses in < 500ms
 
 ### Image Handling

@@ -54,6 +54,11 @@ const farmerSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // New fields for authentication
+  password: {
+    type: String,
+    minlength: 6
+  },
   createdAt: {
     type: Date,
     default: Date.now

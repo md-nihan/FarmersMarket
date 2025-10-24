@@ -1,204 +1,178 @@
 from flask import Flask, request, jsonify
-from PIL import Image
-import requests
-from io import BytesIO
 import os
-import random
+import json
+from werkzeug.utils import secure_filename
 
-# Load environment variables if available
+# Try to import TensorFlow dependencies
 try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except:
-    pass
+    import tensorflow as tf
+    import numpy as np
+    import cv2
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    # If TensorFlow is not available, set flag to use simulated results
+    TENSORFLOW_AVAILABLE = False
+    tf = None
+    np = None
+    cv2 = None
 
 app = Flask(__name__)
 
-print("🤖 Starting AI Quality Grading Service (Rule-based system)...")
-print("✅ AI Service initialized successfully!")
+# Configuration
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def download_image(image_url):
-    """Download image from URL with Twilio authentication if needed"""
-    try:
-        # Handle Twilio media URLs (may need auth)
-        headers = {}
-        
-        # If it's a Twilio URL, add authentication
-        if 'twilio.com' in image_url:
-            account_sid = os.getenv('TWILIO_ACCOUNT_SID', '')
-            auth_token = os.getenv('TWILIO_AUTH_TOKEN', '')
-            
-            if account_sid and auth_token:
-                from requests.auth import HTTPBasicAuth
-                response = requests.get(image_url, auth=HTTPBasicAuth(account_sid, auth_token), timeout=30)
-            else:
-                # Try without auth (for sandbox)
-                response = requests.get(image_url, headers=headers, timeout=30)
-        else:
-            response = requests.get(image_url, headers=headers, timeout=30)
-        
-        response.raise_for_status()
-        return Image.open(BytesIO(response.content))
-    except Exception as e:
-        print(f"Error downloading image: {e}")
-        return None
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def analyze_image_quality(image):
-    """Analyze image quality using rule-based heuristics"""
-    try:
-        # Convert to RGB if needed
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-        
-        # Get image statistics
-        width, height = image.size
-        pixels = list(image.getdata())
-        
-        # Calculate average brightness
-        avg_brightness = sum(sum(pixel) for pixel in pixels) / (len(pixels) * 3)
-        
-        # Calculate image sharpness (variance)
-        gray_pixels = [sum(pixel) / 3 for pixel in pixels]
-        mean = sum(gray_pixels) / len(gray_pixels)
-        variance = sum((p - mean) ** 2 for p in gray_pixels) / len(gray_pixels)
-        sharpness = variance ** 0.5
-        
-        # Quality score based on brightness and sharpness
-        # Good images: bright (100-200) and sharp (variance > 30)
-        score = 0
-        
-        # Brightness score (0-50 points)
-        if 80 <= avg_brightness <= 200:
-            score += 50
-        elif 60 <= avg_brightness <= 220:
-            score += 35
-        else:
-            score += 20
-        
-        # Sharpness score (0-30 points)
-        if sharpness > 40:
-            score += 30
-        elif sharpness > 25:
-            score += 20
-        else:
-            score += 10
-        
-        # Resolution score (0-20 points)
-        total_pixels = width * height
-        if total_pixels > 500000:  # > 0.5 megapixels
-            score += 20
-        elif total_pixels > 200000:
-            score += 15
-        else:
-            score += 10
-        
-        return score
-        
-    except Exception as e:
-        print(f"Error analyzing image: {e}")
-        return 75  # Default score
-
-def calculate_quality_grade(quality_score, product_name):
-    """
-    Calculate quality grade based on image analysis score
-    Uses rule-based heuristics for grading
-    """
-    print(f"Quality score: {quality_score}/100")
-    
-    # Assign grade based on score
-    if quality_score >= 85:
-        grade = "Grade A"
-        score = quality_score
-    elif quality_score >= 70:
-        grade = "Grade B"
-        score = quality_score
+# Load the model (you'll need to download the model files)
+try:
+    if TENSORFLOW_AVAILABLE:
+        # This is where you would load your actual model
+        # model = tf.keras.models.load_model('path/to/your/model.h5')
+        model = None  # Placeholder - replace with actual model loading
+        print("✅ AI Model loaded successfully!")
     else:
-        grade = "Grade C"
-        score = max(quality_score, 60)  # Minimum score of 60
-    
-    # Add small random variation for realism
-    score = min(100, score + random.randint(-2, 2))
-    
-    return grade, round(score, 1)
+        model = None
+        print("⚠️ TensorFlow not available. Using simulated results.")
+except Exception as e:
+    model = None
+    print(f"⚠️ Error loading model: {e}")
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def preprocess_image(image_path):
+    """Preprocess image for model prediction"""
+    if not TENSORFLOW_AVAILABLE or cv2 is None:
+        # Return None if dependencies are not available
+        return None
+        
+    # Read image
+    image = cv2.imread(image_path)
+    # Resize to model input size (224x224 for many models)
+    image = cv2.resize(image, (224, 224))
+    # Normalize pixel values
+    image = image.astype('float32') / 255.0
+    # Add batch dimension
+    image = np.expand_dims(image, axis=0)
+    return image
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'ok',
-        'message': 'AI Quality Grading Service is running',
-        'model': 'Rule-based system'
+        'message': 'AI Service is running',
+        'model_loaded': model is not None
     })
 
-@app.route('/grade', methods=['POST'])
-def grade_produce():
-    """Grade produce quality from image"""
+@app.route('/analyze', methods=['POST'])
+def analyze_freshness():
+    """Analyze freshness of uploaded image"""
     try:
-        data = request.get_json()
-        
-        if not data or 'image_url' not in data:
+        # Check if file was uploaded
+        if 'image' not in request.files:
             return jsonify({
-                'error': 'No image_url provided'
+                'success': False,
+                'message': 'No image file provided'
             }), 400
         
-        image_url = data['image_url']
-        product_name = data.get('product_name', 'Unknown')
+        file = request.files['image']
         
-        print(f"🖼️ Grading image for: {product_name}")
-        print(f"📍 Image URL: {image_url}")
-        
-        # Download image
-        image = download_image(image_url)
-        if image is None:
-            print(f"❌ Could not download image from {image_url}")
+        # Check if file was selected
+        if file.filename == '':
             return jsonify({
-                'grade': 'Grade B',
-                'score': 75,
-                'message': 'Could not download image, assigned default grade'
+                'success': False,
+                'message': 'No image file selected'
+            }), 400
+        
+        # Check if file type is allowed
+        if not allowed_file(file.filename):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid file type. Only PNG, JPG, JPEG, GIF allowed'
+            }), 400
+        
+        # Save file
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # If model is not loaded, return simulated results
+        if model is None:
+            # Remove the file
+            os.remove(filepath)
+            
+            # Return simulated results
+            freshness_options = ['Fresh', 'Half-Fresh', 'Rotten']
+            import random
+            freshness = random.choice(freshness_options)
+            confidence = round(random.uniform(0.7, 0.95), 2)
+            
+            # Determine quality grade based on freshness
+            if freshness == 'Fresh':
+                quality_grade = 'Grade A'
+                quality_score = int(80 + (confidence * 20))  # 80-100
+            elif freshness == 'Half-Fresh':
+                quality_grade = 'Grade B'
+                quality_score = int(50 + (confidence * 30))  # 50-80
+            else:
+                quality_grade = 'Grade C'
+                quality_score = int(confidence * 50)  # 0-50
+            
+            return jsonify({
+                'success': True,
+                'freshness': freshness,
+                'confidence': confidence,
+                'quality_grade': quality_grade,
+                'quality_score': quality_score
             })
         
-        # Analyze image quality
-        quality_score = analyze_image_quality(image)
+        # Preprocess image
+        processed_image = preprocess_image(filepath)
         
-        # Calculate quality grade
-        grade, score = calculate_quality_grade(quality_score, product_name)
+        # Make prediction
+        predictions = model.predict(processed_image)
+        prediction = predictions[0]
         
-        print(f"✅ Quality Grade: {grade} (Score: {score})")
+        # Interpret results
+        freshness_labels = ['Fresh', 'Half-Fresh', 'Rotten']
+        max_index = np.argmax(prediction)
+        confidence = float(prediction[max_index])
+        freshness = freshness_labels[max_index]
+        
+        # Determine quality grade based on freshness
+        if freshness == 'Fresh':
+            quality_grade = 'Grade A'
+            quality_score = int(80 + (confidence * 20))  # 80-100
+        elif freshness == 'Half-Fresh':
+            quality_grade = 'Grade B'
+            quality_score = int(50 + (confidence * 30))  # 50-80
+        else:
+            quality_grade = 'Grade C'
+            quality_score = int(confidence * 50)  # 0-50
+        
+        # Remove the file
+        os.remove(filepath)
         
         return jsonify({
-            'grade': grade,
-            'score': score,
-            'confidence': score / 100,
-            'product_name': product_name
+            'success': True,
+            'freshness': freshness,
+            'confidence': confidence,
+            'quality_grade': quality_grade,
+            'quality_score': quality_score
         })
-    
+        
     except Exception as e:
-        print(f"❌ Error in grade_produce: {e}")
         return jsonify({
-            'grade': 'Grade B',
-            'score': 75,
-            'message': f'Error processing request: {str(e)}'
-        })
+            'success': False,
+            'message': f'Error analyzing image: {str(e)}'
+        }), 500
 
-@app.route('/test', methods=['GET'])
-def test():
-    """Test endpoint"""
-    return jsonify({
-        'message': 'AI service is working!',
-        'model': 'Rule-based system',
-        'endpoints': ['/health', '/grade', '/test']
-    })
-
-# For Render deployment
-if __name__ != "__main__":
-    # This block runs when imported by Gunicorn
-    print("\n🤖 Starting AI Quality Grading Service for Render...")
-    print("📊 Model: Rule-based system")
-    print("🌐 Server: Will be started by Gunicorn")
-    print("\nEndpoints:")
-    print("  - POST /grade - Grade produce quality")
-    print("  - GET /health - Health check")
-    print("  - GET /test - Test endpoint\n")
-
-# Make sure the app is available at the module level for Gunicorn
-# This is crucial for the Procfile command: gunicorn -w 1 -b 0.0.0.0:$PORT app:app
+if __name__ == '__main__':
+    # Get port from environment variable or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

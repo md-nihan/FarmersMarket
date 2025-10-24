@@ -74,8 +74,6 @@ Troubleshooting:
 ## Environment Variables
 
 - `PORT`: Port to run the service on (Render provides this)
-- `TWILIO_ACCOUNT_SID`: Twilio Account SID (optional, for downloading Twilio media)
-- `TWILIO_AUTH_TOKEN`: Twilio Auth Token (optional, for downloading Twilio media)
 
 ## Dependencies
 

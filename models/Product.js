@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+  farmer_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Farmer',
+    required: true
+  },
   farmer_phone: {
     type: String,
     required: true,
@@ -71,5 +76,6 @@ productSchema.pre('save', function(next) {
 // Index for faster queries
 productSchema.index({ status: 1, createdAt: -1 });
 productSchema.index({ farmer_phone: 1 });
+productSchema.index({ farmer_id: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

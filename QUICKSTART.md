@@ -26,8 +26,6 @@ notepad .env
 
 **Required Credentials:**
 - MongoDB Atlas connection string
-- Twilio Account SID & Auth Token
-- Twilio WhatsApp number
 
 ### 3️⃣ Start Services
 
@@ -44,30 +42,35 @@ npm start
 
 ### 4️⃣ Access Platform
 
-- 🛒 **Marketplace:** http://localhost:3000
-- 👨‍💼 **Admin Panel:** http://localhost:3000/admin.html
-- 🏥 **Health Check:** http://localhost:3000/api/health
+- 🛒 **Marketplace:** http://localhost:3001
+- 👨‍💼 **Admin Panel:** http://localhost:3001/admin.html
+- 🧑‍🌾 **Farmer Login:** http://localhost:3001/farmer-login.html
+- 🏥 **Health Check:** http://localhost:3001/api/health
 
 ---
 
 ## 🎯 Quick Test Workflow
 
 1. **Add Farmer** (Admin Panel)
-   - Open http://localhost:3000/admin.html
-   - Add farmer with your WhatsApp number
+   - Open http://localhost:3001/admin.html
+   - Add farmer
 
-2. **List Product** (WhatsApp)
-   - Send to Twilio number: "Tomato 30 kg"
-   - Attach a photo (optional)
+2. **Farmer Login**
+   - Go to http://localhost:3001/farmer-login.html
+   - Login with farmer credentials
 
-3. **View Product** (Marketplace)
-   - Open http://localhost:3000
+3. **List Product** (Farmer Dashboard)
+   - Upload product with image
+   - Product appears on marketplace
+
+4. **View Product** (Marketplace)
+   - Open http://localhost:3001
    - See your AI-graded product
 
-4. **Place Order** (Buyer)
+5. **Place Order** (Buyer)
    - Click "Order Now"
    - Fill details
-   - Farmer gets WhatsApp notification!
+   - Farmer gets notification in dashboard
 
 ---
 
@@ -83,17 +86,16 @@ For detailed setup instructions, troubleshooting, and API reference:
 - **Backend:** Node.js, Express, MongoDB
 - **Frontend:** Vanilla JS, Modern CSS (Glass Morphism)
 - **AI:** Python, Flask, TensorFlow (MobileNetV2)
-- **Integration:** Twilio WhatsApp API
 
 ---
 
 ## 🏆 MVP Features
 
-✅ WhatsApp-based product listing
+✅ Farmer dashboard product listing
 ✅ AI quality grading (Grade A/B/C)
 ✅ Real-time marketplace
 ✅ Order placement system
-✅ Instant WhatsApp notifications
+✅ In-website notifications
 ✅ Admin farmer management
 
 ---

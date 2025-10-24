@@ -2,12 +2,44 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 const Farmer = require('../models/Farmer');
-const { ensureWhatsAppAddress, normalizePhone } = require('../utils/phone');
+const Order = require('../models/Order');
+const { normalizePhone } = require('../utils/phone');
 const { verifyToken } = require('./auth');
 
-// We'll import the sendWhatsAppMessage function from Green API whatsapp routes
-const whatsappRoutes = require('./whatsapp-green');
-const sendWhatsAppMessage = whatsappRoutes.sendWhatsAppMessage;
+// Helper function to get backend base URL
+const getBackendBase = (req) => {
+  // Use environment variable if set and not in local development
+  if (process.env.BACKEND_PUBLIC_URL && process.env.NODE_ENV !== 'development') {
+    return process.env.BACKEND_PUBLIC_URL;
+  } else if (process.env.NODE_ENV === 'production') {
+    const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    return `${proto}://${host}`;
+  } else {
+    // For local development, use localhost
+    return `http://localhost:${process.env.PORT || 3001}`;
+  }
+};
+
+// Helper function to fix image URLs for production
+const fixImageUrl = (imageUrl, req) => {
+  // If image_url is already an absolute URL, return as is
+  if (!imageUrl || imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+  
+  // Get backend base URL
+  let backendBase = getBackendBase(req);
+  
+  // Ensure we always use the correct production URL for deployed images
+  if (process.env.NODE_ENV === 'production' && !process.env.BACKEND_PUBLIC_URL) {
+    // Fallback to the known deployed URL if environment variable is not set
+    backendBase = 'https://farmlinkai-7.onrender.com';
+  }
+  
+  // Construct the full image URL - ensure no double slashes
+  return `${backendBase}${imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl}`;
+};
 
 // Get all available products
 router.get('/', async (req, res) => {
@@ -18,9 +50,7 @@ router.get('/', async (req, res) => {
     
     // Fix image URLs for production
     const fixedProducts = products.map(product => {
-      if (product.image_url && product.image_url.includes('localhost:3001')) {
-        product.image_url = product.image_url.replace('http://localhost:3001', 'https://farmlinkai-7.onrender.com');
-      }
+      product.image_url = fixImageUrl(product.image_url, req);
       return product;
     });
     
@@ -52,9 +82,7 @@ router.get('/:id', async (req, res) => {
     }
     
     // Fix image URL for production
-    if (product.image_url && product.image_url.includes('localhost:3001')) {
-      product.image_url = product.image_url.replace('http://localhost:3001', 'https://farmlinkai-7.onrender.com');
-    }
+    product.image_url = fixImageUrl(product.image_url, req);
     
     res.json({
       success: true,
@@ -74,15 +102,29 @@ router.get('/:id', async (req, res) => {
 router.post('/order/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
-    const { buyer_name, buyer_phone } = req.body;
+    const { customer_name, customer_phone, customer_location, quantity } = req.body;
 
-    // Find the product
+    // Find the product and explicitly populate farmer_id
     const product = await Product.findById(productId);
     
     if (!product) {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
+      });
+    }
+
+    // Log product details for debugging
+    console.log('Product found:', product);
+    console.log('Product farmer_id:', product.farmer_id);
+    console.log('Product farmer_id type:', typeof product.farmer_id);
+
+    // Check if farmer_id is valid
+    if (!product.farmer_id) {
+      console.error('Farmer ID is missing from product:', product);
+      return res.status(400).json({
+        success: false,
+        message: 'Product is not associated with a farmer'
       });
     }
 
@@ -93,46 +135,41 @@ router.post('/order/:productId', async (req, res) => {
       });
     }
 
+    // Create order
+    const newOrder = new Order({
+      product_id: product._id,
+      farmer_id: product.farmer_id, // This should be populated from the product
+      customer_name: customer_name || 'Anonymous Customer',
+      customer_phone: customer_phone || '',
+      customer_location: customer_location || '',
+      quantity: quantity || product.quantity,
+      status: 'pending'
+    });
+
+    // Log order details for debugging
+    console.log('Creating order with:', {
+      product_id: newOrder.product_id,
+      farmer_id: newOrder.farmer_id,
+      customer_name: newOrder.customer_name
+    });
+
+    await newOrder.save();
+
     // Update product status
     product.status = 'ordered';
-    product.buyer_name = buyer_name || 'Anonymous Buyer';
-    product.buyer_phone = buyer_phone || '';
+    product.buyer_name = customer_name || 'Anonymous Customer';
+    product.buyer_phone = customer_phone || '';
     product.orderedAt = new Date();
     
     await product.save();
 
-    // Send WhatsApp notification to farmer
-    try {
-      // Format phone number for Green API
-      const formattedPhone = `${product.farmer_phone}@c.us`;
-      
-      console.log(`📨 Sending order notification...`);
-      console.log(`   To: ${formattedPhone}`);
-      
-      const notificationMsg = `🎉 *Order Alert!*\n\n` +
-        `A buyer wants to purchase your produce:\n\n` +
-        `📦 Product: ${product.product_name}\n` +
-        `⚖️ Quantity: ${product.quantity}\n` +
-        `👤 Buyer: ${buyer_name || 'Anonymous'}\n` +
-        `📞 Contact: ${buyer_phone || 'Will call you'}\n\n` +
-        `Please prepare the order for dispatch! 🚜`;
-
-      await sendWhatsAppMessage({
-        body: notificationMsg,
-        to: formattedPhone
-      });
-
-      console.log(`✅ Order notification sent successfully!`);
-    } catch (whatsappError) {
-      console.error('⚠️ Failed to send WhatsApp notification:', whatsappError.message);
-      console.error('⚠️ Error stack:', whatsappError.stack);
-      // Don't fail the order if notification fails
-    }
+    // Order placed successfully
+    console.log(`✅ Order placed successfully for product: ${product.product_name}`);
 
     res.json({
       success: true,
       message: 'Order placed successfully!',
-      product: product
+      order: newOrder
     });
 
   } catch (error) {
@@ -153,9 +190,7 @@ router.get('/farmer/:phone', async (req, res) => {
     
     // Fix image URLs for production
     const fixedProducts = products.map(product => {
-      if (product.image_url && product.image_url.includes('localhost:3001')) {
-        product.image_url = product.image_url.replace('http://localhost:3001', 'https://farmlinkai-7.onrender.com');
-      }
+      product.image_url = fixImageUrl(product.image_url, req);
       return product;
     });
     
@@ -223,6 +258,7 @@ router.post('/create', async (req, res) => {
 
     // Create product
     const newProduct = new Product({
+      farmer_id: farmer._id, // Add this line to set farmer_id
       farmer_phone,
       farmer_name: farmer.name,
       farmer_location: farmer.location,
@@ -238,33 +274,9 @@ router.post('/create', async (req, res) => {
     await newProduct.save();
     console.log('✅ Manual product saved to database. Product ID:', newProduct._id);
 
-    // Send confirmation notification via WhatsApp
-    try {
-      // Format phone number for Green API
-      const formattedPhone = `${farmer_phone}@c.us`;
-      
-      const confirmationMsg = `✅ Product Listed Successfully!\n\n` +
-        `📦 Product: ${product_name}\n` +
-        `⚖️ Quantity: ${quantity}\n` +
-        `⭐ Quality: ${newProduct.quality_grade}\n` +
-        `📍 Location: ${farmer.location || 'Not specified'}\n\n` +
-        `Your produce is now live on the marketplace! 🌾\n\n` +
-        `View at: ${process.env.BACKEND_PUBLIC_URL || 'https://farmlinkai-7.onrender.com'}`;
-
-      await sendWhatsAppMessage({
-        body: confirmationMsg,
-        to: formattedPhone
-      });
-      
-      console.log(`✅ WhatsApp confirmation sent to farmer: ${farmer_phone}`);
-    } catch (notificationError) {
-      console.error(`❌ Failed to send WhatsApp confirmation to ${farmer_phone}:`, notificationError.message);
-      // Don't fail the request if notification fails
-    }
-
     res.status(201).json({
       success: true,
-      message: 'Product created successfully! WhatsApp confirmation sent to farmer.',
+      message: 'Product created successfully!',
       product: newProduct
     });
 

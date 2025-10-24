@@ -1,17 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Farmer = require('../models/Farmer');
+const bcrypt = require('bcryptjs');
 const { verifyToken } = require('./auth');
-const { normalizePhone, ensureWhatsAppAddress } = require('../utils/phone');
-
-// Import the Green API WhatsApp messaging system
-const whatsappRoutes = require('./whatsapp-green');
-const sendWhatsAppMessage = whatsappRoutes.sendWhatsAppMessage;
+const { normalizePhone } = require('../utils/phone');
 
 // Farmer self-registration (public - no auth required)
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, village, district, crops } = req.body;
+    const { name, phone, village, district, crops, password } = req.body;
 
     // Normalize phone to E.164 early
     const normalizedPhone = normalizePhone(phone);
@@ -45,6 +42,12 @@ router.post('/register', async (req, res) => {
       approvalStatus: 'pending',
       isActive: false
     });
+
+    // If password is provided, hash it and save it
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      newFarmer.password = hashedPassword;
+    }
 
     await newFarmer.save();
 
@@ -127,51 +130,12 @@ router.post('/approve/:id', verifyToken, async (req, res) => {
     console.log(`✅ Farmer approved: ${farmer.name} (${farmer.phone})`);
     console.log(`   Approved by: ${req.admin.username}`);
 
-    // Send welcome WhatsApp with join instructions using Green API
-    try {
-      // Format phone number for Green API
-      const formattedPhone = `${farmer.phone}@c.us`;
-      
-      console.log(`📨 Sending welcome message to approved farmer...`);
-      console.log(`   To: ${formattedPhone}`);
-      
-      const welcomeMsg = `🎉 *Congratulations ${farmer.name}!*\n\n` +
-        `Your FarmLink AI account has been APPROVED! ✅\n\n` +
-        `You can now start listing your vegetables on our marketplace.\n\n` +
-        `Just send: [Vegetable] [Quantity]\n\n` +
-        `Examples:\n` +
-        `✅ Tomato 50kg\n` +
-        `✅ Onion 100 kg\n` +
-        `✅ Potato 200kg\n\n` +
-        `📸 You can attach photos for better prices!\n\n` +
-        `Welcome to FarmLink AI! 🧑‍🌾`;
-
-      await sendWhatsAppMessage({
-        body: welcomeMsg,
-        to: formattedPhone
-      });
-
-      farmer.welcomeSent = true;
-      await farmer.save();
-
-      console.log(`✅ Welcome WhatsApp sent successfully!`);
-      
-      res.json({
-        success: true,
-        message: 'Farmer approved successfully! Welcome WhatsApp sent.',
-        farmer: farmer
-      });
-    } catch (whatsappError) {
-      console.error('⚠️ Failed to send WhatsApp:', whatsappError.message);
-      console.error('⚠️ Error stack:', whatsappError.stack);
-      
-      res.json({
-        success: true,
-        message: 'Farmer approved! (WhatsApp notification failed - check Green API setup)',
-        farmer: farmer,
-        error: whatsappError.message
-      });
-    }
+    // Farmer approved successfully
+    res.json({
+      success: true,
+      message: 'Farmer approved successfully!',
+      farmer: farmer
+    });
 
   } catch (error) {
     console.error('Error approving farmer:', error);

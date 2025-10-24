@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 FarmLink AI - Farmer Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="logo">🌾 FarmLink AI</h1>
+                    <p class="tagline">Farm to Table, Powered by AI</p>
+                </div>
+                <nav class="nav-menu">
+                    <a href="index.html" class="nav-link">Marketplace</a>
+                    <a href="farmer-dashboard.html" class="nav-link active">Dashboard</a>
+                    <button class="btn btn-small btn-secondary" onclick="logout()" style="margin-left: 10px;">
+                        Logout
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="stats-section">
+                <div class="glass-card section-card">
+                    <h2>Welcome, <span id="farmer-name">Farmer</span>!</h2>
+                    <p>Manage your products and orders from this dashboard.</p>
+                </div>
+            </section>
+
+            <!-- Stats Overview -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value" id="total-products">0</div>
+                        <div class="stat-label">Your Products</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-value" id="pending-orders">0</div>
+                        <div class="stat-label">Pending Orders</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value" id="accepted-orders">0</div>
+                        <div class="stat-label">Accepted Orders</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">🚚</div>
+                        <div class="stat-value" id="dispatched-orders">0</div>
+                        <div class="stat-label">Dispatched Orders</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Product Section -->
+            <section class="add-farmer-section">
+                <div class="glass-card section-card">
+                    <div class="section-header-inline">
+                        <h2>🌱 Upload New Product</h2>
+                    </div>
+                    
+                    <form id="upload-product-form" class="farmer-form" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="product-name">Product Name *</label>
+                                <input type="text" id="product-name" required placeholder="e.g., Tomato">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="product-quantity">Quantity *</label>
+                                <input type="text" id="product-quantity" required placeholder="e.g., 50 kg">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="product-media">Product Image/Video (Optional)</label>
+                            <input type="file" id="product-media" accept="image/*,video/*">
+                        </div>
+                        
+                        <div class="form-info">
+                            <p>ℹ️ After uploading, your product will be listed on the marketplace for buyers to see.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">📤</span>
+                            Upload Product
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- My Products Section -->
+            <section class="farmers-list-section">
+                <div class="glass-card section-card">
+                    <div class="section-header-inline">
+                        <h2>📦 My Products</h2>
+                        <button class="btn btn-secondary" onclick="loadMyProducts()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div id="products-loading" class="loading-container" style="display: none;">
+                        <div class="loader"></div>
+                        <p>Loading your products...</p>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="products-empty" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📦</div>
+                        <h3>No Products Listed</h3>
+                        <p>Upload your first product using the form above.</p>
+                    </div>
+                    
+                    <!-- Products Table -->
+                    <div id="products-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="farmers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Quality</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table-body">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Orders Section -->
+            <section class="all-products-section">
+                <div class="glass-card section-card">
+                    <div class="section-header-inline">
+                        <h2>🛒 My Orders</h2>
+                        <button class="btn btn-secondary" onclick="loadMyOrders()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div id="orders-loading" class="loading-container" style="display: none;">
+                        <div class="loader"></div>
+                        <p>Loading your orders...</p>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="orders-empty" class="empty-state" style="display: none;">
+                        <div class="empty-icon">🛒</div>
+                        <h3>No Orders Yet</h3>
+                        <p>Buyers will place orders for your products here.</p>
+                    </div>
+                    
+                    <!-- Orders Table -->
+                    <div id="orders-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="farmers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Customer</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body">
+                                    <!-- Orders will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Update Order Status Modal -->
+    <div id="update-order-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content glass-card">
+            <button class="modal-close" onclick="closeUpdateOrderModal()">&times;</button>
+            <div class="modal-header">
+                <h3>🔄 Update Order Status</h3>
+            </div>
+            <div class="modal-body">
+                <form id="update-order-form">
+                    <input type="hidden" id="update-order-id">
+                    
+                    <div class="form-group">
+                        <label for="order-status">Order Status</label>
+                        <select id="order-status" class="form-select" required>
+                            <option value="">Select Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="dispatched">Dispatched</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-info">
+                        <p>ℹ️ <strong>Status Guide:</strong></p>
+                        <ul style="text-align: left; margin-top: 0.5rem; color: #333;">
+                            <li><strong>Pending</strong> - New order received</li>
+                            <li><strong>Accepted</strong> - Order confirmed and processing</li>
+                            <li><strong>Dispatched</strong> - Order shipped to customer</li>
+                            <li><strong>Delivered</strong> - Order successfully delivered</li>
+                            <li><strong>Cancelled</strong> - Order cancelled</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeUpdateOrderModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✅</div>
+        <div class="toast-message">Success!</div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FarmLink AI. Empowering farmers, nourishing communities.</p>
+        </div>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = window.location.origin;
+        let farmerData = null;
+        let notificationInterval = null;
+        let lastOrderCount = 0;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Farmer dashboard initializing...');
+            // Check if farmer is logged in
+            const token = localStorage.getItem('farmerToken');
+            if (!token) {
+                window.location.href = 'farmer-login.html';
+                return;
+            }
+            
+            // Get farmer data
+            try {
+                farmerData = JSON.parse(localStorage.getItem('farmerData'));
+                document.getElementById('farmer-name').textContent = farmerData.name;
+            } catch (e) {
+                console.error('Error parsing farmer data:', e);
+            }
+            
+            setupProductUploadForm();
+            setupUpdateOrderForm();
+            loadDashboardStats();
+            loadMyProducts();
+            loadMyOrders();
+            
+            // Start polling for notifications every 10 seconds
+            startNotificationPolling();
+        });
+
+        // Start notification polling
+        function startNotificationPolling() {
+            // Notification polling removed as requested
+        }
+
+        // Check for new orders
+        async function checkForNewOrders() {
+            // Notification system removed as requested
+        }
+
+        // Show notification in the notification area
+        function showNotification(message) {
+            // Notification system removed as requested
+        }
+
+        // Clear all notifications
+        function clearNotifications() {
+            // Notification system removed as requested
+        }
+
+        // Check notification count and update display
+        function checkNotificationCount() {
+            // Notification system removed as requested
+        }
+
+        // Setup product upload form
+        function setupProductUploadForm() {
+            const form = document.getElementById('upload-product-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const productName = document.getElementById('product-name').value.trim();
+                const productQuantity = document.getElementById('product-quantity').value.trim();
+                const productMedia = document.getElementById('product-media').files[0];
+                
+                if (!productName || !productQuantity) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Uploading...';
+                    
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    formData.append('product_name', productName);
+                    formData.append('quantity', productQuantity);
+                    if (productMedia) {
+                        formData.append('media', productMedia);
+                    }
+                    
+                    const response = await fetch(`${API_BASE_URL}/api/farmer-products/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('Product uploaded successfully!', 'success');
+                        form.reset();
+                        loadMyProducts();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Upload failed', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error uploading product:', error);
+                    showToast('An error occurred. Please try again.', 'error');
+                } finally {
+                    // Always re-enable the submit button
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="btn-icon">📤</span> Upload Product';
+                    }
+                }
+            });
+        }
+
+        // Setup update order form
+        function setupUpdateOrderForm() {
+            const form = document.getElementById('update-order-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const orderId = document.getElementById('update-order-id').value;
+                const status = document.getElementById('order-status').value;
+                
+                if (!orderId || !status) {
+                    showToast('Please select a status', 'error');
+                    return;
+                }
+                
+                try {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Updating...';
+                    }
+                    
+                    const response = await fetch(`${API_BASE_URL}/api/farmer-products/order/${orderId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                        },
+                        body: JSON.stringify({ status })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast(`Order status updated to ${status}!`, 'success');
+                        closeUpdateOrderModal();
+                        loadMyOrders();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Update failed', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    showToast('An error occurred. Please try again.', 'error');
+                } finally {
+                    // Always re-enable the submit button
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Update Status';
+                    }
+                }
+            });
+        }
+
+        // Load dashboard stats
+        async function loadDashboardStats() {
+            try {
+                // Load products count
+                const productsResponse = await fetch(`${API_BASE_URL}/api/farmer-products/my-products`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                    }
+                });
+                
+                const productsData = await productsResponse.json();
+                
+                if (productsData.success) {
+                    const totalProductsElement = document.getElementById('total-products');
+                    if (totalProductsElement) {
+                        totalProductsElement.textContent = productsData.count;
+                    }
+                }
+                
+                // Load orders count
+                const ordersResponse = await fetch(`${API_BASE_URL}/api/farmer-products/my-orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                    }
+                });
+                
+                const ordersData = await ordersResponse.json();
+                
+                if (ordersData.success) {
+                    let pending = 0, accepted = 0, dispatched = 0;
+                    
+                    ordersData.orders.forEach(order => {
+                        switch (order.status) {
+                            case 'pending': pending++; break;
+                            case 'accepted': accepted++; break;
+                            case 'dispatched': dispatched++; break;
+                        }
+                    });
+                    
+                    const pendingElement = document.getElementById('pending-orders');
+                    const acceptedElement = document.getElementById('accepted-orders');
+                    const dispatchedElement = document.getElementById('dispatched-orders');
+                    
+                    if (pendingElement) pendingElement.textContent = pending;
+                    if (acceptedElement) acceptedElement.textContent = accepted;
+                    if (dispatchedElement) dispatchedElement.textContent = dispatched;
+                    
+                    // Set initial order count for notifications (always set it)
+                    lastOrderCount = ordersData.orders.length;
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                // Don't show error to user, but log it for debugging
+            }
+        }
+
+        // Load my products
+        async function loadMyProducts() {
+            try {
+                const loadingElement = document.getElementById('products-loading');
+                const emptyElement = document.getElementById('products-empty');
+                const tableContainer = document.getElementById('products-table-container');
+                const tableBody = document.getElementById('products-table-body');
+                
+                // Show loading
+                if (loadingElement) loadingElement.style.display = 'block';
+                if (emptyElement) emptyElement.style.display = 'none';
+                if (tableContainer) tableContainer.style.display = 'none';
+                
+                const response = await fetch(`${API_BASE_URL}/api/farmer-products/my-products`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                if (loadingElement) loadingElement.style.display = 'none';
+                
+                if (data.success && data.products.length > 0) {
+                    // Show table
+                    if (tableContainer) tableContainer.style.display = 'block';
+                    
+                    // Populate table
+                    if (tableBody) {
+                        tableBody.innerHTML = '';
+                        data.products.forEach(product => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${product.product_name}</td>
+                                <td>${product.quantity}</td>
+                                <td>${product.quality_grade} (${product.quality_score})</td>
+                                <td>${product.status}</td>
+                                <td>${new Date(product.createdAt).toLocaleDateString()}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                } else {
+                    // Show empty state
+                    if (emptyElement) emptyElement.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                const loadingElement = document.getElementById('products-loading');
+                const emptyElement = document.getElementById('products-empty');
+                if (loadingElement) loadingElement.style.display = 'none';
+                if (emptyElement) emptyElement.style.display = 'block';
+                showToast('Error loading products', 'error');
+            }
+        }
+
+        // Load my orders
+        async function loadMyOrders() {
+            try {
+                const loadingElement = document.getElementById('orders-loading');
+                const emptyElement = document.getElementById('orders-empty');
+                const tableContainer = document.getElementById('orders-table-container');
+                const tableBody = document.getElementById('orders-table-body');
+                
+                // Show loading
+                if (loadingElement) loadingElement.style.display = 'block';
+                if (emptyElement) emptyElement.style.display = 'none';
+                if (tableContainer) tableContainer.style.display = 'none';
+                
+                const response = await fetch(`${API_BASE_URL}/api/farmer-products/my-orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('farmerToken')}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                if (loadingElement) loadingElement.style.display = 'none';
+                
+                if (data.success && data.orders.length > 0) {
+                    // Show table
+                    if (tableContainer) tableContainer.style.display = 'block';
+                    
+                    // Populate table
+                    if (tableBody) {
+                        tableBody.innerHTML = '';
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>
+                                    <div><strong>${order.product_id ? order.product_id.product_name : 'Unknown'}</strong></div>
+                                    <div style="font-size: 0.85em; color: #666;">${order.product_id ? order.product_id.quantity : ''}</div>
+                                </td>
+                                <td>
+                                    <div><strong>${order.customer_name}</strong></div>
+                                    <div style="font-size: 0.85em; color: #666;">📞 ${order.customer_phone || 'No phone provided'}</div>
+                                    ${order.customer_location ? `<div style="font-size: 0.8em; color: #888;">📍 ${order.customer_location}</div>` : ''}
+                                </td>
+                                <td>${order.quantity}</td>
+                                <td>
+                                    <span class="status-badge status-${order.status}">
+                                        ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                    </span>
+                                </td>
+                                <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <button class="btn btn-small btn-secondary" onclick="openUpdateOrderModal('${order._id}', '${order.status}')">
+                                        Update
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                } else {
+                    // Show empty state
+                    if (emptyElement) emptyElement.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                const loadingElement = document.getElementById('orders-loading');
+                const emptyElement = document.getElementById('orders-empty');
+                if (loadingElement) loadingElement.style.display = 'none';
+                if (emptyElement) emptyElement.style.display = 'block';
+                showToast('Error loading orders', 'error');
+            }
+        }
+
+        // Open update order modal
+        function openUpdateOrderModal(orderId, currentStatus) {
+            document.getElementById('update-order-id').value = orderId;
+            document.getElementById('order-status').value = currentStatus;
+            document.getElementById('update-order-modal').style.display = 'block';
+        }
+
+        // Close update order modal
+        function closeUpdateOrderModal() {
+            document.getElementById('update-order-modal').style.display = 'none';
+        }
+
+        // Clear all products
+        async function clearAllProducts() {
+            // Clear all products functionality removed as requested
+        }
+
+        // Clear all orders
+        async function clearAllOrders() {
+            // Clear all orders functionality removed as requested
+        }
+
+        // Logout function
+        function logout() {
+            // Stop polling
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+            }
+            
+            localStorage.removeItem('farmerToken');
+            localStorage.removeItem('farmerData');
+            window.location.href = 'farmer-login.html';
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = toast.querySelector('.toast-message');
+            const toastIcon = toast.querySelector('.toast-icon');
+            
+            toastMessage.textContent = message;
+            toastIcon.textContent = type === 'success' ? '✅' : '❌';
+            
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

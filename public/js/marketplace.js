@@ -235,8 +235,10 @@ function closeOrderModal() {
 async function placeOrder() {
     const buyerName = document.getElementById('buyer-name').value.trim();
     const buyerPhone = document.getElementById('buyer-phone').value.trim();
+    const buyerLocation = document.getElementById('buyer-location').value.trim();
+    const orderQuantity = document.getElementById('order-quantity').value.trim();
     
-    if (!buyerName || !buyerPhone) {
+    if (!buyerName || !buyerPhone || !buyerLocation || !orderQuantity) {
         showToast('Please fill in all required fields', 'error');
         return;
     }
@@ -253,8 +255,10 @@ async function placeOrder() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                buyer_name: buyerName,
-                buyer_phone: buyerPhone
+                customer_name: buyerName,
+                customer_phone: buyerPhone,
+                customer_location: buyerLocation,
+                quantity: orderQuantity
             })
         });
         

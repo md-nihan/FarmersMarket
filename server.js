@@ -8,18 +8,24 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
-// Import routes (force Green API; no Twilio fallback)
-const whatsappRoutes = require('./routes/whatsapp-green');
+// Import routes
 const productRoutes = require('./routes/products');
 const farmerRoutes = require('./routes/farmers');
 const authRoutes = require('./routes/auth');
+const farmerAuthRoutes = require('./routes/farmerAuth');
+const farmerProductRoutes = require('./routes/farmerProducts');
+const customerOrderRoutes = require('./routes/customerOrders');
+const adminOrderRoutes = require('./routes/adminOrders');
+const freshnessRoutes = require('./routes/freshness');
 
 // Function to initialize services after server start
 function initializeServices() {
   console.log('🔧 Initializing services...');
   
-  // No need to initialize Twilio clients anymore
-  console.log('✅ Green API services ready');
+  // AI Service information
+  console.log('💡 AI Service: To enable freshness detection, start the AI service with:');
+  console.log('   cd ai-service && python app.py');
+  console.log('   AI Service will run at: http://localhost:5000');
 }
 
 const app = express();
@@ -36,31 +42,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // API Routes
-// Primary webhook path (documented)
-app.use('/api/whatsapp', whatsappRoutes);
-// Alias webhook path 
-app.use('/whatsapp', whatsappRoutes);
-
 app.use('/api/products', productRoutes);
 app.use('/api/farmers', farmerRoutes);
 app.use('/api/auth', authRoutes);
-
-// Test route for WhatsApp system
-app.get('/api/test-whilio', async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: 'Green API WhatsApp system is ready!',
-      testInstructions: 'Use POST /api/test-whilio with { to: "whatsapp:+1234567890", message: "test message" } to test'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error testing WhatsApp system',
-      error: error.message
-    });
-  }
-});
+app.use('/api/farmer-auth', farmerAuthRoutes);
+app.use('/api/farmer-products', farmerProductRoutes);
+app.use('/api/customer-orders', customerOrderRoutes);
+app.use('/api/admin-orders', adminOrderRoutes);
+app.use('/api/freshness', freshnessRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -119,8 +108,8 @@ const PORT = process.env.PORT || 3001;
 
 // Determine the public URL for the backend
 const getBackendPublicUrl = (req) => {
-  // Use environment variable if set and not in local development
-  if (process.env.BACKEND_PUBLIC_URL && process.env.NODE_ENV !== 'development') {
+  // Use environment variable if set
+  if (process.env.BACKEND_PUBLIC_URL) {
     return process.env.BACKEND_PUBLIC_URL;
   }
   
@@ -139,7 +128,7 @@ const getBackendPublicUrl = (req) => {
   }
   
   // For local development, use localhost
-  return `http://localhost:${PORT}`;
+  return `http://localhost:${process.env.PORT || 3001}`;
 };
 
 const startServer = async () => {
@@ -160,9 +149,11 @@ const startServer = async () => {
     📱 Server running at: ${backendUrl}
     🌾 Marketplace: ${backendUrl}
     👨‍💼 Admin Panel: ${backendUrl}/admin.html
+    🧑‍🌾 Farmer Login: ${backendUrl}/farmer-login.html
     
-    💬 WhatsApp Webhook: ${backendUrl}/api/whatsapp
     📊 API Health: ${backendUrl}/api/health
+    
+    🤖 AI Service: http://localhost:5000 (if running)
     `);
 
     // Kick off DB connect attempts

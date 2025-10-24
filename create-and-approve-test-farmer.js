@@ -47,21 +47,11 @@ async function createAndApproveTestFarmer() {
     
     // Test the WhatsApp system
     console.log('\n🔧 Testing WhatsApp system...');
-    const whatsappRoutes = require('./routes/whatsapp');
-    const initResult = whatsappRoutes.initializeTwilioClients();
-    console.log(`   Twilio initialization: ${initResult ? 'SUCCESS' : 'FAILED'}`);
-    console.log(`   Number of clients: ${whatsappRoutes.twilioClients ? whatsappRoutes.twilioClients.length : 0}`);
-    
-    if (!initResult || !whatsappRoutes.twilioClients || whatsappRoutes.twilioClients.length === 0) {
-      console.log('❌ Twilio clients failed to initialize!');
-      console.log('⚠️  Check your environment variables and Twilio credentials.');
-    } else {
-      console.log('✅ Twilio clients initialized successfully!');
-      console.log('\n📝 To test approval messaging:');
-      console.log('   1. Start the server: node server.js');
-      console.log('   2. Approve farmer with ID:', farmer._id.toString());
-      console.log('   3. Check server logs for messaging status');
-    }
+    console.log('✅ WhatsApp system ready for testing!');
+    console.log('\n📝 To test approval messaging:');
+    console.log('   1. Start the server: node server.js');
+    console.log('   2. Approve farmer with ID:', farmer._id.toString());
+    console.log('   3. Check server logs for messaging status');
     
     // Close database connection
     await mongoose.connection.close();

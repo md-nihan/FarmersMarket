@@ -10,13 +10,12 @@
 
 # 🌾 FarmLink AI - Hyperlocal Supply Chain for Farmers
 
-**Connecting Farmers Directly with Buyers using AI & WhatsApp**
+**Connecting Farmers Directly with Buyers using AI**
 
 [![Node.js](https://img.shields.io/badge/Node.js-16+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/)
-[![WhatsApp](https://img.shields.io/badge/WhatsApp-API-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://www.twilio.com/)
 
 [Features](#-features) • [Quick Start](#-quick-start) • [Demo](#-live-demo) • [Documentation](#-documentation) • [Tech Stack](#%EF%B8%8F-tech-stack)
 
@@ -37,7 +36,7 @@ Meanwhile, buyers struggle with inconsistent quality and inflated prices.
 ## 💡 The Solution
 
 FarmLink AI is a **hyperlocal supply chain platform** that:
-- 📱 Enables farmers to list produce via **WhatsApp** (zero learning curve)
+- 🧑‍🌾 Enables farmers to list produce through a web interface
 - 🤖 Uses **AI image recognition** for automatic quality grading
 - 🛒 Provides **real-time marketplace** for buyers to discover fresh produce
 - ⚡ Facilitates **direct connection** between farmers and buyers
@@ -48,10 +47,11 @@ FarmLink AI is a **hyperlocal supply chain platform** that:
 ## ✨ Features
 
 ### For Farmers 🧑‍🌾
-- ✅ **WhatsApp Integration**: List products by sending "Tomato 30 kg" + photo
+- ✅ **Farmer Dashboard**: List products through web interface
 - ✅ **Instant Confirmation**: Receive listing confirmation within 60 seconds
-- ✅ **Order Notifications**: Get WhatsApp alerts when buyers place orders
-- ✅ **No App Required**: Works on any smartphone with WhatsApp
+- ✅ **Order Notifications**: Get alerts within the website when buyers place orders
+- ✅ **No App Required**: Works on any smartphone with a web browser
+- ✅ **AI Freshness Detection**: Automatic quality grading of produce
 
 ### For Buyers 🛒
 - ✅ **AI-Verified Quality**: See Grade A/B/C ratings on all products
@@ -72,7 +72,6 @@ FarmLink AI is a **hyperlocal supply chain platform** that:
 - [Node.js 16+](https://nodejs.org/)
 - [Python 3.8+](https://www.python.org/)
 - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account (free)
-- [Green API](https://green-api.com/) account (free trial)
 
 ### Installation (Windows)
 
@@ -81,16 +80,19 @@ FarmLink AI is a **hyperlocal supply chain platform** that:
 setup.bat
 
 # 2. Configure environment
-# Edit .env with your credentials (MongoDB, Green API)
+# Edit .env with your credentials (MongoDB)
 notepad .env
 
-# 3. Start AI service (Terminal 1)
+# 3. Install AI service dependencies
+install-ai-dependencies.bat
+
+# 4. Start AI service (Terminal 1)
 start-ai-service.bat
 
-# 4. Start backend (Terminal 2)
+# 5. Start backend (Terminal 2)
 start-backend.bat
 
-# 5. Open in browser
+# 6. Open in browser
 # Marketplace: http://localhost:3001
 # Farmer Registration: http://localhost:3001/register.html
 # Admin Login: http://localhost:3001/login.html
@@ -129,34 +131,48 @@ See [DEPLOYMENT_RENDER.md](DEPLOYMENT_RENDER.md) for detailed deployment instruc
 
 ### User Journey
 
-1. **Admin adds farmer** (http://localhost:3000/admin.html)
+1. **Admin adds farmer** (http://localhost:3001/admin.html)
    - Name: Parvati Devi
    - Phone: +911234567890
    - Location: Bengaluru Rural
 
-2. **Farmer lists product via WhatsApp**
-   ```
-   Send to Green API WhatsApp number: "Tomato 30 kg" + 📸 photo
-   
-   Bot replies:
-   ✅ Product Listed Successfully!
-   📦 Product: Tomato
-   ⚖️ Quantity: 30 kg
-   ⭐ Quality: Grade A
-   ```
+2. **Farmer lists product through dashboard**
+   - Login to farmer dashboard
+   - Upload product with image
+   - Product appears on marketplace
 
-3. **Buyer views marketplace** (http://localhost:3000)
+3. **Buyer views marketplace** (http://localhost:3001)
    - See AI-graded products
    - Filter by quality
    - Click "Order Now"
 
 4. **Farmer receives order notification**
-   ```
-   🎉 Order Alert!
-   Product: Tomato (30 kg)
-   Buyer: Ravi Kumar
-   Contact: +919876543210
-   ```
+   - Notification appears in farmer dashboard
+   - Farmer can view order details and update status
+
+---
+
+## 🤖 AI Freshness Detection
+
+FarmLink AI includes an advanced freshness detection system that automatically grades produce quality:
+
+### How It Works
+1. Farmers upload images when listing products
+2. AI service analyzes the image using computer vision
+3. System determines freshness level (Fresh, Half-Fresh, Rotten)
+4. Assigns quality grade (Grade A, B, or C) and score (0-100)
+5. Buyers see quality badges on marketplace
+
+### Technology Stack
+- **Python Flask** microservice for AI processing
+- **TensorFlow** for deep learning model
+- **OpenCV** for image preprocessing
+- **REST API** integration with Node.js backend
+
+### Quality Grades
+- **Grade A (80-100)**: Fresh produce, premium quality
+- **Grade B (50-79)**: Good quality, suitable for most uses
+- **Grade C (0-49)**: Lower quality, may have issues
 
 ---
 
@@ -166,7 +182,6 @@ See [DEPLOYMENT_RENDER.md](DEPLOYMENT_RENDER.md) for detailed deployment instruc
 - **Node.js** + **Express.js** - RESTful API server
 - **MongoDB Atlas** - Cloud database
 - **Mongoose** - ODM for MongoDB
-- **Green API** - WhatsApp integration
 
 ### Frontend
 - **Vanilla JavaScript** - No frameworks (lightweight)
@@ -182,7 +197,6 @@ See [DEPLOYMENT_RENDER.md](DEPLOYMENT_RENDER.md) for detailed deployment instruc
 ### DevOps
 - **Git** - Version control
 - **MongoDB Atlas** - Cloud database hosting
-- **ngrok** - Webhook tunneling (development)
 
 ---
 
@@ -204,7 +218,7 @@ See [DEPLOYMENT_RENDER.md](DEPLOYMENT_RENDER.md) for detailed deployment instruc
 ```
 farmerproject/
 ├── 📂 models/          # MongoDB schemas (Farmer, Product)
-├── 📂 routes/          # API endpoints (WhatsApp, Products, Farmers)
+├── 📂 routes/          # API endpoints (Products, Farmers)
 ├── 📂 public/          # Frontend (HTML, CSS, JS)
 ├── 📂 ai-service/      # Python Flask AI microservice
 ├── 🔧 server.js        # Main backend server
@@ -228,36 +242,37 @@ farmerproject/
 - Product monitoring
 - Clean, intuitive interface
 
-### WhatsApp Integration
-- Natural language product listing
-- Instant confirmations
-- Order notifications
-- Zero learning curve
+### Farmer Dashboard
+- Product upload interface
+- Order management
+- Status updates
+- Notification system
 
 ---
 
 ## 🛣️ Roadmap
 
 ### ✅ Phase 1: MVP (Current)
-- [x] WhatsApp-based product listing
+- [x] Farmer dashboard product listing
 - [x] AI quality grading (MobileNetV2)
 - [x] Real-time marketplace
 - [x] Order placement system
 - [x] Admin farmer management
+- [x] AI freshness detection
 
 ### 🚧 Phase 2: Enhanced Features (3 months)
 - [ ] Payment integration (Razorpay/Stripe)
 - [ ] Analytics dashboard
 - [ ] Multi-language support (Hindi, Tamil, etc.)
-- [ ] Advanced WhatsApp bot (voice, catalogs)
 - [ ] Push notifications
+- [ ] Mobile app
 
 ### 🔮 Phase 3: AI & Automation (6 months)
 - [ ] Demand forecasting
 - [ ] Route optimization
 - [ ] Dynamic pricing
 - [ ] Custom AI model (trained on produce)
-- [ ] Farmer education via WhatsApp
+- [ ] Farmer education system
 
 ### 🌍 Phase 4: Scale (12 months)
 - [ ] B2B portal for businesses
@@ -284,7 +299,6 @@ Contributions are welcome! Here's how:
 
 - ✅ **Listing Speed**: <60 seconds per product
 - ✅ **AI Accuracy**: 85%+ quality grading accuracy
-- ✅ **User Adoption**: 100% WhatsApp confirmation delivery
 - ✅ **System Reliability**: 99%+ uptime
 - ✅ **Response Time**: <500ms API responses
 
@@ -296,11 +310,6 @@ Contributions are welcome! Here's how:
 - Verify connection string in `.env`
 - Check IP whitelist in MongoDB Atlas
 - Ensure password doesn't have special characters
-
-**WhatsApp Not Working?**
-- Join Twilio sandbox first
-- Verify credentials in `.env`
-- Check webhook URL (use ngrok for local testing)
 
 **AI Service Error?**
 - Install TensorFlow: `pip install tensorflow==2.13.0`
@@ -322,7 +331,6 @@ See [LICENSE](LICENSE) for details.
 
 - **Farmers** - The backbone of our food system
 - **Open Source Community** - TensorFlow, Node.js, MongoDB teams
-- **Twilio** - WhatsApp API platform
 - **MongoDB** - Atlas cloud database
 
 ---

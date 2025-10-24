@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 FarmLink AI - Farmer Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="logo">🌾 FarmLink AI</h1>
+                    <p class="tagline">Farm to Table, Powered by AI</p>
+                </div>
+                <nav class="nav-menu">
+                    <a href="index.html" class="nav-link">Marketplace</a>
+                    <a href="register.html" class="nav-link">Register as Farmer</a>
+                    <a href="farmer-login.html" class="nav-link active">Farmer Login</a>
+                    <a href="admin.html" class="nav-link">Admin Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="container">
+            <!-- Login Section -->
+            <section class="add-farmer-section">
+                <div class="glass-card section-card">
+                    <div class="section-header-inline">
+                        <h2>🌱 Farmer Login</h2>
+                    </div>
+                    
+                    <div id="login-success" class="success-message" style="display: none;">
+                        <div class="success-icon">✅</div>
+                        <h3>Login Successful!</h3>
+                        <p>Redirecting to your dashboard...</p>
+                        <!-- Loading animation -->
+                        <div id="redirect-animation" style="margin-top: 20px; display: none;">
+                            <div class="loader" style="width: 30px; height: 30px; margin: 0 auto;"></div>
+                            <p style="margin-top: 10px; font-size: 1rem;">Preparing your dashboard...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Screen -->
+                    <div id="loading-screen" class="loading-container" style="display: none; text-align: center; padding: 2rem;">
+                        <div class="loader"></div>
+                        <p style="margin-top: 1rem; font-size: 1.2rem; color: #333;">Logging you in securely...</p>
+                    </div>
+                    
+                    <form id="login-form" class="farmer-form">
+                        <div class="form-group">
+                            <label for="farmer-phone">WhatsApp Number (with country code) *</label>
+                            <input type="tel" id="farmer-phone" required placeholder="e.g., +911234567890">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="farmer-password">Password *</label>
+                            <input type="password" id="farmer-password" required placeholder="Enter your password">
+                        </div>
+                        
+                        <div class="form-info">
+                            <p>ℹ️ After logging in, you'll be redirected to your dashboard where you can manage your products.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">🔓</span>
+                            Login
+                        </button>
+                        
+                        <div class="form-footer">
+                            <p>Don't have an account? <a href="register.html">Register as a farmer</a></p>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✅</div>
+        <div class="toast-message">Success!</div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FarmLink AI. Empowering farmers, nourishing communities.</p>
+        </div>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = window.location.origin;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setupLoginForm();
+        });
+
+        // Setup login form
+        function setupLoginForm() {
+            const form = document.getElementById('login-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const phone = document.getElementById('farmer-phone').value.trim();
+                const password = document.getElementById('farmer-password').value.trim();
+                
+                if (!phone || !password) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    // Show loading screen
+                    const loadingScreen = document.getElementById('loading-screen');
+                    const loginForm = document.getElementById('login-form');
+                    const successMessage = document.getElementById('login-success');
+                    
+                    loginForm.style.display = 'none';
+                    loadingScreen.style.display = 'block';
+                    
+                    const response = await fetch(`${API_BASE_URL}/api/farmer-auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ phone, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Show success message
+                        loadingScreen.style.display = 'none';
+                        successMessage.style.display = 'block';
+                        showToast('Login successful!', 'success');
+                        
+                        // Show redirect animation
+                        const redirectAnimation = document.getElementById('redirect-animation');
+                        if (redirectAnimation) {
+                            redirectAnimation.style.display = 'block';
+                        }
+                        
+                        // Store token in localStorage
+                        localStorage.setItem('farmerToken', data.token);
+                        localStorage.setItem('farmerData', JSON.stringify(data.farmer));
+                        
+                        // Redirect to dashboard after a short delay
+                        setTimeout(() => {
+                            window.location.href = 'farmer-dashboard.html';
+                        }, 2000);
+                    } else {
+                        // Show form again on error
+                        loadingScreen.style.display = 'none';
+                        loginForm.style.display = 'block';
+                        showToast(data.message || 'Login failed', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error logging in:', error);
+                    // Show form again on error
+                    const loadingScreen = document.getElementById('loading-screen');
+                    const loginForm = document.getElementById('login-form');
+                    loadingScreen.style.display = 'none';
+                    loginForm.style.display = 'block';
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = toast.querySelector('.toast-message');
+            const toastIcon = toast.querySelector('.toast-icon');
+            
+            toastMessage.textContent = message;
+            toastIcon.textContent = type === 'success' ? '✅' : '❌';
+            
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

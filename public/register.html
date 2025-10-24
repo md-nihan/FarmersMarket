@@ -26,6 +26,7 @@
                 <nav class="nav-menu">
                     <a href="index.html" class="nav-link">Marketplace</a>
                     <a href="register.html" class="nav-link active">Register as Farmer</a>
+                    <a href="farmer-login.html" class="nav-link">Farmer Login</a>
                     <a href="admin.html" class="nav-link">Admin Login</a>
                 </nav>
             </div>
@@ -46,7 +47,8 @@
                         <div class="success-icon">✅</div>
                         <h3>Registration Successful!</h3>
                         <p>Thank you for registering! Your account is under review. We will contact you shortly for verification.</p>
-                        <p>You will receive a WhatsApp message once your account is approved.</p>
+                        <p>Once approved, you can <a href="farmer-login.html">login to your dashboard</a> to upload your vegetables and manage orders.</p>
+                        <p>You will also receive a WhatsApp message once your account is approved.</p>
                     </div>
                     
                     <form id="register-farmer-form" class="farmer-form">
@@ -79,8 +81,14 @@
                             <input type="text" id="farmer-crops" placeholder="e.g., Tomato, Onion, Potato">
                         </div>
                         
+                        <div class="form-group">
+                            <label for="farmer-password">Password *</label>
+                            <input type="password" id="farmer-password" required placeholder="Enter a password">
+                        </div>
+                        
                         <div class="form-info">
                             <p>ℹ️ After registration, your account will be reviewed by our team. You will receive a WhatsApp message once approved.</p>
+                            <p>ℹ️ Once approved, use your phone number and password to <a href="farmer-login.html">login to your dashboard</a> where you can upload vegetables and manage orders.</p>
                         </div>
                         
                         <button type="submit" class="btn btn-primary">
@@ -127,8 +135,9 @@
                 const village = document.getElementById('farmer-village').value.trim();
                 const district = document.getElementById('farmer-district').value.trim();
                 const crops = document.getElementById('farmer-crops').value.trim();
+                const password = document.getElementById('farmer-password').value.trim();
                 
-                if (!name || !phone || !village || !district) {
+                if (!name || !phone || !village || !district || !password) {
                     showToast('Please fill in all required fields', 'error');
                     return;
                 }
@@ -138,12 +147,12 @@
                     submitBtn.disabled = true;
                     submitBtn.textContent = 'Registering...';
                     
-                    const response = await fetch(`${API_BASE_URL}/api/farmers/register`, {
+                    const response = await fetch(`${API_BASE_URL}/api/farmer-auth/register`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ name, phone, village, district, crops })
+                        body: JSON.stringify({ name, phone, village, district, crops, password })
                     });
                     
                     const data = await response.json();

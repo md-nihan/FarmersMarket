@@ -1,170 +1,62 @@
-# 🧑‍🌾 FarmLink AI - Architecture Overview
+# FarmLink AI - System Architecture
 
-## System Architecture
+## Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        FARMER (Parvati)                      │
-│                           WhatsApp                           │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-                            │ Send: "Tomato 30 kg" + Photo
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Twilio WhatsApp API                       │
-│                   (Webhook: /api/whatsapp)                   │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Node.js Backend Server                     │
-│                     (Express.js - Port 3000)                 │
-│                                                               │
-│  Routes:                                                      │
-│  • /api/whatsapp    - WhatsApp webhook handler               │
-│  • /api/products    - Product CRUD operations                │
-│  • /api/farmers     - Farmer management                      │
-│  • /api/health      - Health check                           │
-└─────┬──────────────────────────────────┬────────────────────┘
-      │                                  │
-      │ Call AI Service                  │ Save to Database
-      │                                  │
-      ▼                                  ▼
-┌────────────────────────┐    ┌────────────────────────┐
-│  AI Quality Grading    │    │   MongoDB Atlas        │
-│  Python Flask (5000)   │    │   (Cloud Database)     │
-│                        │    │                        │
-│  • MobileNetV2 Model   │    │  Collections:          │
-│  • Image Analysis      │    │  • farmers             │
-│  • Grade: A/B/C        │    │  • products            │
-└────────────────────────┘    └────────────────────────┘
-                                        │
-                                        │ Read Products
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Frontend Web Application                        │
-│              (Vanilla JS + Modern CSS)                       │
-│                                                               │
-│  Pages:                                                       │
-│  • index.html   - Buyer marketplace                          │
-│  • admin.html   - Farmer management                          │
-│                                                               │
-│  Features:                                                    │
-│  • Glass morphism UI                                         │
-│  • Animated gradients                                        │
-│  • Real-time updates                                         │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            │ Place Order
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        BUYER (Ravi)                          │
-│                    Hotel/Restaurant Owner                    │
-└─────────────────────────────────────────────────────────────┘
-```
+FarmLink AI is a hyperlocal supply chain platform that connects farmers directly with buyers using AI. The system consists of four main components:
+
+1. **Farmer Interface**: Web-based dashboard for product listing
+2. **AI Service**: Automatic quality grading
+3. **Buyer Interface**: Real-time marketplace
+4. **Admin Interface**: Farmer and product management
 
 ## Data Flow
 
-### 1. Product Listing Flow
-```
-Farmer (WhatsApp) 
-  → Twilio API 
-  → Backend (/api/whatsapp)
-  → AI Service (quality grading)
-  → MongoDB (save product)
-  → WhatsApp (confirmation to farmer)
-```
-
-### 2. Order Placement Flow
-```
-Buyer (Web)
-  → Frontend (order modal)
-  → Backend (/api/products/order/:id)
-  → MongoDB (update status)
-  → Twilio API
-  → Farmer (WhatsApp notification)
+```mermaid
+graph TD
+    A[Farmer Dashboard] --> B[Upload Product]
+    B --> C[Save to MongoDB]
+    C --> D[Send Confirmation]
+    C --> E[AI Service]
+    E --> F[Quality Grade]
+    F --> G[Update Product]
+    H[Buyer Browser] --> I[Fetch Products]
+    I --> J[MongoDB]
+    J --> I
+    K[Admin Panel] --> L[Manage Farmers]
+    L --> J
 ```
 
-### 3. Farmer Onboarding Flow
-```
-Admin (Web)
-  → Frontend (admin panel)
-  → Backend (/api/farmers)
-  → MongoDB (save farmer)
-  → Frontend (confirmation)
-```
+## Component Details
 
-## Database Schema
+### 1. Farmer Interface (Web Dashboard)
+- Farmers upload products through web dashboard
+- System processes product details and images
+- Sends immediate confirmation within website
+- Stores product in MongoDB with "pending" grade
 
-### Farmers Collection
-```javascript
-{
-  _id: ObjectId,
-  name: String,              // "Parvati Devi"
-  phone: String,             // "+911234567890"
-  location: String,          // "Bengaluru Rural"
-  isActive: Boolean,         // true/false
-  createdAt: Date
-}
-```
+### 2. AI Service (Python/Flask)
+- Receives image URL via REST API
+- Runs computer vision model on image
+- Returns quality grade (A/B/C) and score (0-100)
+- Updates product in MongoDB with grade
 
-### Products Collection
-```javascript
-{
-  _id: ObjectId,
-  farmer_phone: String,      // "+911234567890"
-  farmer_name: String,       // "Parvati Devi"
-  farmer_location: String,   // "Bengaluru Rural"
-  product_name: String,      // "Tomato"
-  quantity: String,          // "30 kg"
-  status: String,            // "available" | "ordered" | "delivered"
-  image_url: String,         // Twilio media URL
-  quality_grade: String,     // "Grade A" | "Grade B" | "Grade C"
-  quality_score: Number,     // 0-100
-  buyer_phone: String,       // Set when ordered
-  buyer_name: String,        // Set when ordered
-  createdAt: Date,
-  orderedAt: Date
-}
-```
+### 3. Buyer Interface (Web)
+- Real-time marketplace showing all products
+- Filters by quality grade
+- "Order Now" button for each product
+- Modal form for buyer details
 
-## API Endpoints
-
-### Farmer Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/farmers` | Get all farmers |
-| POST | `/api/farmers` | Add new farmer |
-| PUT | `/api/farmers/:id` | Update farmer |
-| DELETE | `/api/farmers/:id` | Delete farmer |
-
-### Product Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | Get all available products |
-| GET | `/api/products/:id` | Get single product |
-| POST | `/api/products/order/:id` | Place order |
-
-### WhatsApp Integration
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/whatsapp` | Webhook for incoming WhatsApp messages |
-
-### AI Service
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `http://localhost:5000/grade` | Grade produce quality |
-| GET | `http://localhost:5000/health` | Health check |
+### 4. Admin Interface (Web)
+- Farmer management (approve/reject)
+- Product monitoring
+- Statistics dashboard
+- Manual product creation
 
 ## Technology Stack Details
 
 ### Backend (Node.js)
 - **express**: Web framework
 - **mongoose**: MongoDB ODM
-- **twilio**: WhatsApp integration
 - **axios**: HTTP client for AI service
 - **dotenv**: Environment configuration
 - **cors**: Cross-origin resource sharing
@@ -189,12 +81,6 @@ Admin (Web)
 - **Automatic backups**: Point-in-time recovery
 - **Global clusters**: Low latency access
 
-### Integration (Twilio)
-- **WhatsApp Business API**: Sandbox for development
-- **Programmable messaging**: Send/receive messages
-- **Media support**: Image upload/download
-- **Webhooks**: Real-time message delivery
-
 ## Security Considerations
 
 ### Current Implementation (MVP)
@@ -210,20 +96,17 @@ Admin (Web)
 - 🔒 Input sanitization
 - 🔒 CSRF protection
 - 🔒 Image upload to secure storage (S3)
-- 🔒 Webhook signature verification
 - 🔒 Environment-based configuration
 
 ## Scalability Path
 
 ### Phase 1: MVP (Current)
 - Single server deployment
-- Twilio sandbox
 - Free MongoDB Atlas tier
 - Manual coordination
 
 ### Phase 2: Production
 - Load balancer + multiple servers
-- Twilio production account
 - MongoDB replica set
 - Automated logistics
 

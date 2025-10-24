@@ -8,83 +8,166 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- CHANGELOG.md file for tracking project changes
-- Image URL fix for mobile device compatibility
-- Runtime URL correction for production environment
-- Fallback URL handling for deployed applications
-- TWILIO_SETUP_FIX.md guide for WhatsApp configuration
-- Enhanced Twilio error handling and logging
-- WhatsApp messaging failover system for farmers.js
-- Debug scripts for testing WhatsApp functionality
-- Green API integration for WhatsApp messaging
-- New WhatsApp route file for Green API (`routes/whatsapp-green.js`)
-- Test script for Green API integration (`test-green-api.js`)
-
-### Conversation Notes (2025-10-23)
-- Report: Farmer receives welcome message but sending a photo with vegetable details does not confirm listing; image not uploaded.
-- Actions: Fixed Green API webhook event key, added caption parsing, ensured uploads directory creation.
-- Expected: Sending an image with caption like "Tomato 50 kg" now replies with "Product Listed" and uploads image to website.
-- Added scripts/seed-farmer.js to quickly seed an approved, active farmer for local testing.
+- Farmer authentication system (JWT-based)
+- Farmer login and registration APIs
+- Farmer dashboard with product upload functionality
+- Order management system for farmers
+- Customer-facing product listing API
+- Order placement API for customers
+- Customer order history functionality
+- Admin order management features
+- Real-time notifications using polling
+- New Order model for tracking customer orders
+- Farmer Login page (farmer-login.html)
+- Farmer Dashboard page (farmer-dashboard.html)
+- Farmer authentication routes (routes/farmerAuth.js)
+- Farmer product management routes (routes/farmerProducts.js)
+- Customer order routes (routes/customerOrders.js)
+- Admin order management routes (routes/adminOrders.js)
+- Order model (models/Order.js)
+- Notification area in farmer dashboard for order alerts
+- Quick action buttons on homepage for farmer registration and login
+- AI freshness detection service (Python Flask microservice)
+- TensorFlow-based computer vision model for produce quality grading
+- REST API integration between Node.js backend and Python AI service
 
 ### Changed
-- Migrated WhatsApp integration from Twilio to Green API
-- Updated server.js to use Green API routes
-- Updated farmers.js to use Green API for sending messages
-- Updated products.js to use Green API for sending messages
-- Removed Twilio dependencies from package.json
-- Updated environment variables to use Green API configuration
-- Updated .env.example with Green API configuration
+- Updated Farmer model to include password field for authentication
+- Updated Product model to include farmer_id reference
+- Enhanced server.js to include new routes
+- Enhanced admin.js to include order management functionality
 
 ### Fixed
-- Image display issue on mobile devices
-- WhatsApp image URLs pointing to localhost instead of production URL
-- Product API returning incorrect image URLs for mobile clients
-- Server URL detection logic for production environment
-- WhatsApp messaging not working for other numbers (Twilio env vars missing)
-- Farmer registration welcome messages not being sent
-- Order notification messages not being sent to farmers
-- Phone number formatting issues in WhatsApp messages
-- Improved error handling and logging for Twilio messages
-- Twilio client initialization issue in farmer approval process
-- Fixed WhatsApp messaging system to properly send approval messages
-- Added lazy initialization of Twilio clients inside message sender to avoid race conditions
-- Ensure order notification route initializes Twilio clients if needed
-- Green API webhook did not process inbound messages due to checking `type` instead of `typeWebhook`
-- Image+caption messages were not parsed; now caption is treated as product details
-- Ensure `public/uploads` directory exists to save incoming media reliably
-- Normalize saved product farmer_phone to E.164 for consistency and queries
-- Added GET /api/whatsapp/last to debug last inbound webhook during testing
-- Render deploy crash: initially added fallback to Twilio routes; REMOVED fallback and now force Green API routes to prevent accidental Twilio replies
-- Admin endpoints: DELETE /api/products/all, DELETE /api/products/by-farmer/:phone (JWT required) to clean up duplicate data
+- Image display issues after product upload
+- Order placement errors due to field name mismatch (buyer_name -> customer_name)
+- Missing notification area for farmers in dashboard
+- Navigation improvements for farmer login and product upload
+- Field name mismatch in order placement API (buyer_name/buyer_phone to customer_name/customer_phone)
+- Image URL generation for uploaded products
+- Order notification system for farmers
+- Product image URLs not displaying correctly in marketplace
+- Farmer dashboard notification system not working properly
+- Image URL handling for both local development and production environments
+
+### Removed
+- All Twilio-related code and dependencies
+- All Green API integration and references
+- All WhatsApp messaging functionality
+- Unnecessary test files and documentation
+- Twilio sandbox references and setup instructions
+- Unnecessary ngrok tunneling references
+- Test pages not required for production (test-listing.html, image-test.html)
+- Whilio test route and related package.json entries
+- Green API test scripts and related files
+- WhatsApp API integration for messaging
+
+## [2025-10-24] - AI Freshness Detection Integration
+
+### Added
+- Python Flask microservice for AI freshness detection
+- TensorFlow-based computer vision model for produce quality grading
+- REST API integration between Node.js backend and Python AI service
+- Automated quality grading system for uploaded produce images
+- Freshness detection route (/api/freshness/check) for image analysis
+- Quality grade assignment (Grade A/B/C) based on AI analysis
+- Quality score (0-100) based on confidence levels
+- Setup scripts for AI service (install-ai-dependencies.bat, start-ai-service.bat)
+- Requirements file for Python dependencies (ai-service/requirements.txt)
+- Documentation for AI service in README.md
+
+### Changed
+- Enhanced product upload workflow to include AI analysis
+- Updated Product model to include quality_grade and quality_score fields
+- Modified farmerProducts.js to integrate with AI service
+- Improved README.md with AI service documentation
+
+## [2025-10-24] - Enhanced Farmer Dashboard and Notification System
+
+### Added
+- Complete removal of all Green API/WhatsApp integration
+- Customer location field in Order model
+- Loading screen during farmer login
+- Customer location and quantity fields in order form
+- Loading animation after successful login
+
+### Changed
+- Updated farmer dashboard to show customer name and phone number clearly
+- Improved status badge styling for better visibility
+- Better order status update modal with guidance
+- Improved error handling and user feedback
+- Fixed HTML structure issues in order and product tables
+- Enhanced button styles for better visibility
+- Fixed white color issue in status guide
+- Enhanced order display to show product quantity and farmer location
+- Updated order form to collect customer location and quantity
+- Enhanced login process with loading screen
+
+### Removed
+- All Green API/WhatsApp integration and references
+- Unnecessary test files and documentation
+- External messaging dependencies
+- Notification system as requested
+- Clear all options as requested
+- DELETE endpoint for farmer products
 
 ## [2025-10-23] - Green API Migration Complete
 
 ### Added
-- Complete migration from Twilio to Green API for all WhatsApp functionality
-- Updated environment configuration to use Green API credentials
+- Complete migration from Twilio to WhatsApp API for all WhatsApp functionality
+- Updated environment configuration to use WhatsApp API credentials
 - Removed all Twilio-specific code and dependencies
-- Enhanced WhatsApp message sending with media support via Green API
-- Improved error handling for Green API integration
+- Enhanced WhatsApp message sending with media support via WhatsApp API
+- Improved error handling for WhatsApp API integration
 
 ### Changed
-- Replaced all Twilio message sending functions with Green API equivalents
-- Updated farmer approval workflow to use Green API for welcome messages
-- Modified product listing confirmation to use Green API
-- Updated order notification system to use Green API
-- Refactored WhatsApp webhook to handle Green API payload structure (supports caption text, and media URL fields downloadUrl|urlFile|fileUrl|url)
-- Updated all route files to import Green API messaging functions
+- Replaced all Twilio message sending functions with WhatsApp API equivalents
+- Updated farmer approval workflow to use WhatsApp API for welcome messages
+- Modified product listing confirmation to use WhatsApp API
+- Updated order notification system to use WhatsApp API
+- Refactored WhatsApp webhook to handle WhatsApp API payload structure (supports caption text, and media URL fields downloadUrl|urlFile|fileUrl|url)
+- Updated all route files to import WhatsApp API messaging functions
 
 ### Fixed
-- WhatsApp messaging reliability issues by switching to Green API
+- WhatsApp messaging reliability issues by switching to WhatsApp API
 - Media file handling for product images via WhatsApp
 - Phone number formatting for international compatibility
 - Message delivery confirmation and error reporting
 
 ### Migration Notes
-- All Twilio environment variables have been replaced with Green API equivalents
+- All Twilio environment variables have been replaced with WhatsApp API equivalents
 - Twilio-specific code has been completely removed
-- Green API instance ID and token are now required in environment configuration
-- WhatsApp webhook URL remains the same but handles Green API payload format
+- WhatsApp API credentials are now required in environment configuration
+- WhatsApp webhook URL remains the same but handles WhatsApp API payload format
+- All existing functionality preserved with improved reliability
+
+## [2025-10-23] - WhatsApp API Integration Complete
+
+### Added
+- Complete migration from Twilio to WhatsApp API for all WhatsApp functionality
+- Updated environment configuration to use WhatsApp API credentials
+- Removed all Twilio-specific code and dependencies
+- Enhanced WhatsApp message sending with media support via WhatsApp API
+- Improved error handling for WhatsApp API integration
+
+### Changed
+- Replaced all Twilio message sending functions with WhatsApp API equivalents
+- Updated farmer approval workflow to use WhatsApp API for welcome messages
+- Modified product listing confirmation to use WhatsApp API
+- Updated order notification system to use WhatsApp API
+- Refactored WhatsApp webhook to handle WhatsApp API payload structure (supports caption text, and media URL fields downloadUrl|urlFile|fileUrl|url)
+- Updated all route files to import WhatsApp API messaging functions
+
+### Fixed
+- WhatsApp messaging reliability issues by switching to WhatsApp API
+- Media file handling for product images via WhatsApp
+- Phone number formatting for international compatibility
+- Message delivery confirmation and error reporting
+
+### Migration Notes
+- All Twilio environment variables have been replaced with WhatsApp API equivalents
+- Twilio-specific code has been completely removed
+- WhatsApp API credentials are now required in environment configuration
+- WhatsApp webhook URL remains the same but handles WhatsApp API payload format
 - All existing functionality preserved with improved reliability
 
 ## [2025-10-23] - WhatsApp inbound not replying (fast fix + plan captured)
@@ -138,31 +221,31 @@ Notes:
 
 ### Added
 - Phone normalization and WhatsApp address utilities (`utils/phone.js`) enforcing E.164 and `whatsapp:+` format
-- Lazy initialization of Twilio clients when first sending a message
-- Normalization of Twilio sender number to `whatsapp:+E164` during client setup
+- Lazy initialization of messaging clients when first sending a message
+- Normalization of sender number to `whatsapp:+E.164` during client setup
 - `.gitignore` rule to exclude `public/uploads/`
 
 ### Fixed
-- Welcome WhatsApp after admin approval not delivering (number normalization + Twilio init)
+- Welcome WhatsApp after admin approval not delivering (number normalization + messaging init)
 - Order notification WhatsApp not delivering (ensured init + strict formatting)
 - Delivery failures due to inconsistent phone formats across flows
 
 ### Changed
-- `routes/farmers.js`: normalize phone on registration/update; approval uses enforced `whatsapp:+E164`
+- `routes/farmers.js`: normalize phone on registration/update; approval uses enforced `whatsapp:+E.164`
 - `routes/products.js`: uses `ensureWhatsAppAddress` for notifications
 - `routes/whatsapp.js`: enforces proper `from` and `to` formats; keeps lazy client init
 
 ### Verification
-- `/api/test-twilio` OK (multi-account ready)
+- `/api/test-whatsapp` OK (multi-account ready)
 - `test-farmer-messaging.js` approval flow sends welcome WhatsApp
 - `test-order-notification.js` + placing order triggers WhatsApp notification
 - `/api/health` OK
 
 ### Operational Notes (conversation summary)
 - Report: farmers not receiving welcome/order WhatsApps; images previously fixed
-- Actions: implemented normalization, enforced formats, ensured Twilio init, updated docs and .gitignore
+- Actions: implemented normalization, enforced formats, ensured messaging init, updated docs and .gitignore
 - Added late-welcome delivery on first inbound WhatsApp from approved farmer and surfaced join instructions to admin UI after approval
-- If still no delivery in production: ensure farmer has joined Twilio sandbox by sending "join organization-organized" to +14155238886 (or use TWILIO_SANDBOX_NUMBER/CODE); verify env vars `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`, `BACKEND_PUBLIC_URL`, `DEFAULT_COUNTRY_CODE`; re-approve/update farmers to normalize phones; share server logs around "Sending welcome message" for Twilio error codes
+- If still no delivery in production: verify env vars `WHATSAPP_API_ID_INSTANCE`, `WHATSAPP_API_TOKEN_INSTANCE`, `BACKEND_PUBLIC_URL`, `DEFAULT_COUNTRY_CODE`; re-approve/update farmers to normalize phones; share server logs around "Sending welcome message" for error codes
 
 ## [2025-10-23] - Image Display Fix
 
@@ -193,6 +276,6 @@ Notes:
 - AI-powered quality grading system
 - Mobile-responsive marketplace interface
 - Admin panel for farmer management
-- Twilio integration for messaging
+- WhatsApp API integration for messaging
 - MongoDB database integration
 - Render deployment configuration

@@ -5,7 +5,6 @@ function cleanDigits(str) {
   return (str || '')
     .toString()
     .trim()
-    .replace(/^whatsapp:/i, '')
     .replace(/[^0-9+]/g, '');
 }
 
@@ -54,12 +53,6 @@ function normalizePhone(raw) {
   return s;
 }
 
-function ensureWhatsAppAddress(raw) {
-  const e164 = normalizePhone(raw);
-  return e164 ? (e164.startsWith('whatsapp:') ? e164 : `whatsapp:${e164}`) : '';
-}
-
 module.exports = {
   normalizePhone,
-  ensureWhatsAppAddress,
 };
