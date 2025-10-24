@@ -8,31 +8,18 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
-// Import routes with more robust path resolution
+// Import routes with absolute paths to avoid any path resolution issues
 const path = require('path');
 
-// Function to resolve route paths more reliably
-function resolveRoute(routePath) {
-  try {
-    // Try the standard require first
-    return require(routePath);
-  } catch (error) {
-    // If that fails, try with path.resolve
-    const resolvedPath = path.resolve(__dirname, routePath);
-    console.log(`Attempting to load route from resolved path: ${resolvedPath}`);
-    return require(resolvedPath);
-  }
-}
-
-// Import routes
-const productRoutes = resolveRoute('./routes/products');
-const farmerRoutes = resolveRoute('./routes/farmers');
-const authRoutes = resolveRoute('./routes/auth');
-const farmerAuthRoutes = resolveRoute('./routes/farmerAuth');
-const farmerProductRoutes = resolveRoute('./routes/farmerProducts');
-const customerOrderRoutes = resolveRoute('./routes/customerOrders');
-const adminOrderRoutes = resolveRoute('./routes/adminOrders');
-const freshnessRoutes = resolveRoute('./routes/freshness');
+// Use absolute paths for all route imports
+const productRoutes = require(path.join(__dirname, 'routes', 'products'));
+const farmerRoutes = require(path.join(__dirname, 'routes', 'farmers'));
+const authRoutes = require(path.join(__dirname, 'routes', 'auth'));
+const farmerAuthRoutes = require(path.join(__dirname, 'routes', 'farmerAuth'));
+const farmerProductRoutes = require(path.join(__dirname, 'routes', 'farmerProducts'));
+const customerOrderRoutes = require(path.join(__dirname, 'routes', 'customerOrders'));
+const adminOrderRoutes = require(path.join(__dirname, 'routes', 'adminOrders'));
+const freshnessRoutes = require(path.join(__dirname, 'routes', 'freshness'));
 
 // Function to initialize services after server start
 function initializeServices() {
